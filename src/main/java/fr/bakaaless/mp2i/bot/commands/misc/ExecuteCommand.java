@@ -35,6 +35,7 @@ public class ExecuteCommand implements CommandExecutor {
                     }).start();
                 } catch (IOException exception) {
                     event.getChannel().sendMessage(exception.toString()).queue();
+                    event.getChannel().sendMessage(exception.getMessage()).queue();
                     exception.printStackTrace();
                 }
             } else if (message.getContentRaw().toLowerCase().startsWith("```c")) {
@@ -62,6 +63,7 @@ public class ExecuteCommand implements CommandExecutor {
                     }).start();
                 } catch (IOException exception) {
                     event.getChannel().sendMessage(exception.toString()).queue();
+                    event.getChannel().sendMessage(exception.getMessage()).queue();
                     exception.printStackTrace();
                 }
             } else if (message.getContentRaw().toLowerCase().startsWith("```ocaml")) {
@@ -78,6 +80,7 @@ public class ExecuteCommand implements CommandExecutor {
                     }).start();
                 } catch (IOException exception) {
                     event.getChannel().sendMessage(exception.toString()).queue();
+                    event.getChannel().sendMessage(exception.getMessage()).queue();
                     exception.printStackTrace();
                 }
             }
