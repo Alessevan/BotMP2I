@@ -3,7 +3,7 @@
 ### Description
 
 <p>
-Ce programme est un bot discord pour le serveur de la classe MP2I du lycée Miche Montaigne à Bordeaux. Il permet de faire exécuter au bot des programmes C, OCaml ou Python directement depuis discord.
+Ce programme est un bot discord pour le serveur de la classe MP2I du lycée Michel Montaigne à Bordeaux. Il permet de faire exécuter au bot des programmes C, OCaml ou Python directement depuis discord.
 </p>
 
 <p>
