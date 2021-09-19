@@ -22,7 +22,7 @@ public class Starter {
 
     static {
         PropertyConfigurator.configure(ClassLoader.getSystemResourceAsStream("log4j.properties"));
-        logger = Logger.getLogger("Bot Zoe");
+        logger = Logger.getLogger("Bot MP2I");
         gson = new GsonBuilder()
                 .disableHtmlEscaping()
                 .serializeNulls()
@@ -81,7 +81,7 @@ public class Starter {
         consoleThread = new Thread(() -> {
             try {
                 bot.getJda().awaitReady();
-                final ConsoleReader reader = new ConsoleReader("Bot Zoé", System.in, System.out, null);
+                final ConsoleReader reader = new ConsoleReader("Bot MP2I", System.in, System.out, null);
                 String line;
                 while (true) {
                     line = reader.readLine("\33[31m> \33[0m");
