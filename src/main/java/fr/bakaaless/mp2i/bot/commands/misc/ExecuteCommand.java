@@ -30,12 +30,12 @@ public class ExecuteCommand implements CommandExecutor {
                     FileUtils.writeByteArrayToFile(executeCode, message.getContentStripped().getBytes(StandardCharsets.UTF_8));
                     final Process pythonProcess = Runtime.getRuntime().exec("python3 " + executeCode.getAbsolutePath() + args);
                     printResultCommand(event, pythonProcess);
+                    printErrorCommand(event, pythonProcess);
                     new Thread(() -> {
                         deleteCacheFiles(executeCode, pythonProcess);
                     }).start();
                 } catch (IOException exception) {
                     event.getChannel().sendMessage(exception.toString()).queue();
-                    event.getChannel().sendMessage(exception.getMessage()).queue();
                     exception.printStackTrace();
                 }
             } else if (message.getContentRaw().toLowerCase().startsWith("```c")) {
@@ -47,23 +47,25 @@ public class ExecuteCommand implements CommandExecutor {
                     FileUtils.writeByteArrayToFile(executeCode, message.getContentStripped().getBytes(StandardCharsets.UTF_8));
                     final Process cProcess = Runtime.getRuntime().exec("gcc " + executeCode.getAbsolutePath() + " -o " + fileName + ".h");
                     printResultCommand(event, cProcess);
+                    printErrorCommand(event, cProcess);
                     new Thread(() -> {
                         deleteCacheFiles(executeCode, cProcess);
                         try {
                             final Process hProcess = Runtime.getRuntime().exec("./" + fileName + ".h" + args);
                             printResultCommand(event, hProcess);
+                            printErrorCommand(event, hProcess);
                             new Thread(() -> {
                                 final File hFile = new File(fileName + ".h");
                                 deleteCacheFiles(hFile, hProcess);
 
                             }).start();
                         } catch (IOException e) {
+                            event.getChannel().sendMessage(e.toString()).queue();
                             e.printStackTrace();
                         }
                     }).start();
                 } catch (IOException exception) {
                     event.getChannel().sendMessage(exception.toString()).queue();
-                    event.getChannel().sendMessage(exception.getMessage()).queue();
                     exception.printStackTrace();
                 }
             } else if (message.getContentRaw().toLowerCase().startsWith("```ocaml")) {
@@ -75,12 +77,12 @@ public class ExecuteCommand implements CommandExecutor {
                     FileUtils.writeByteArrayToFile(executeCode, message.getContentStripped().getBytes(StandardCharsets.UTF_8));
                     final Process ocamlProcess = Runtime.getRuntime().exec("ocaml " + executeCode.getAbsolutePath() + args);
                     printResultCommand(event, ocamlProcess);
+                    printErrorCommand(event, ocamlProcess);
                     new Thread(() -> {
                         deleteCacheFiles(executeCode, ocamlProcess);
                     }).start();
                 } catch (IOException exception) {
                     event.getChannel().sendMessage(exception.toString()).queue();
-                    event.getChannel().sendMessage(exception.getMessage()).queue();
                     exception.printStackTrace();
                 }
             }
@@ -101,6 +103,15 @@ public class ExecuteCommand implements CommandExecutor {
 
     public void printResultCommand(final GuildMessageReceivedEvent event, final Process process) {
         final InputStream stdout = process.getInputStream();
+        printCommand(event, stdout);
+    }
+
+    public void printErrorCommand(final GuildMessageReceivedEvent event, final Process process) {
+        final InputStream stdout = process.getErrorStream();
+        printCommand(event, stdout);
+    }
+
+    private void printCommand(GuildMessageReceivedEvent event, InputStream stdout) {
         String line;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8))) {
             try {
