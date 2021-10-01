@@ -2,13 +2,18 @@ package fr.bakaaless.mp2i.bot.commands.misc;
 
 import fr.bakaaless.mp2i.bot.commands.CommandExecutor;
 import fr.bakaaless.mp2i.starter.Starter;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,9 +33,9 @@ public class ExecuteCommand implements CommandExecutor {
                     executeCode.getParentFile().mkdirs();
                     executeCode.createNewFile();
                     FileUtils.writeByteArrayToFile(executeCode, message.getContentStripped().getBytes(StandardCharsets.UTF_8));
-                    final Process pythonProcess = Runtime.getRuntime().exec("python3 " + executeCode.getAbsolutePath() + args);
-                    printResultCommand(event, pythonProcess);
+                    final Process pythonProcess = Runtime.getRuntime().exec("python3 " + executeCode.getPath() + args);
                     printErrorCommand(event, pythonProcess);
+                    printResultCommand(event, pythonProcess);
                     new Thread(() -> {
                         deleteCacheFiles(executeCode, pythonProcess);
                     }).start();
@@ -45,15 +50,15 @@ public class ExecuteCommand implements CommandExecutor {
                     executeCode.getParentFile().mkdirs();
                     executeCode.createNewFile();
                     FileUtils.writeByteArrayToFile(executeCode, message.getContentStripped().getBytes(StandardCharsets.UTF_8));
-                    final Process cProcess = Runtime.getRuntime().exec("gcc " + executeCode.getAbsolutePath() + " -o " + fileName + ".h");
-                    printResultCommand(event, cProcess);
+                    final Process cProcess = Runtime.getRuntime().exec("gcc " + executeCode.getPath() + " -o " + fileName + ".h");
                     printErrorCommand(event, cProcess);
+                    printResultCommand(event, cProcess);
                     new Thread(() -> {
                         deleteCacheFiles(executeCode, cProcess);
                         try {
                             final Process hProcess = Runtime.getRuntime().exec("./" + fileName + ".h" + args);
-                            printResultCommand(event, hProcess);
                             printErrorCommand(event, hProcess);
+                            printResultCommand(event, hProcess);
                             new Thread(() -> {
                                 final File hFile = new File(fileName + ".h");
                                 deleteCacheFiles(hFile, hProcess);
@@ -75,9 +80,9 @@ public class ExecuteCommand implements CommandExecutor {
                     executeCode.getParentFile().mkdirs();
                     executeCode.createNewFile();
                     FileUtils.writeByteArrayToFile(executeCode, message.getContentStripped().getBytes(StandardCharsets.UTF_8));
-                    final Process ocamlProcess = Runtime.getRuntime().exec("ocaml " + executeCode.getAbsolutePath() + args);
-                    printResultCommand(event, ocamlProcess);
+                    final Process ocamlProcess = Runtime.getRuntime().exec("ocaml " + executeCode.getPath() + args);
                     printErrorCommand(event, ocamlProcess);
+                    printResultCommand(event, ocamlProcess);
                     new Thread(() -> {
                         deleteCacheFiles(executeCode, ocamlProcess);
                     }).start();
@@ -103,21 +108,35 @@ public class ExecuteCommand implements CommandExecutor {
 
     public void printResultCommand(final GuildMessageReceivedEvent event, final Process process) {
         final InputStream stdout = process.getInputStream();
-        printCommand(event, stdout);
+        printCommand(event, stdout, false);
     }
 
     public void printErrorCommand(final GuildMessageReceivedEvent event, final Process process) {
         final InputStream stdout = process.getErrorStream();
-        printCommand(event, stdout);
+        printCommand(event, stdout, true);
     }
 
-    private void printCommand(GuildMessageReceivedEvent event, InputStream stdout) {
+    private void printCommand(final GuildMessageReceivedEvent event, final InputStream stdout, final boolean error) {
         String line;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8))) {
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, StandardCharsets.UTF_8))) {
             try {
+                StringBuilder builder = new StringBuilder();
                 while ((line = reader.readLine()) != null) {
-                    event.getChannel().sendMessage(line).queue();
+                    builder.append(line.replaceAll("tempo/tempo(python|c|ocaml)?_[0-9]{18}_[0-9]{13}.(py|c|ml):", "")).append(System.lineSeparator());
                     Starter.getLogger().log(Level.INFO, line);
+                    if (builder.length() > 1900) {
+                        if (error)
+                            sendError(event, builder);
+                        else
+                            event.getChannel().sendMessage(builder.toString()).queue();
+                        builder = new StringBuilder();
+                    }
+                }
+                if (builder.length() > 0) {
+                    if (error)
+                        sendError(event, builder);
+                    else
+                        event.getChannel().sendMessage(builder.toString()).queue();
                 }
             } catch(IOException e){
                 event.getChannel().sendMessage("Exception in reading output"+ e).queue();
@@ -127,6 +146,17 @@ public class ExecuteCommand implements CommandExecutor {
             event.getChannel().sendMessage("Exception in reading output"+ e).queue();
             e.printStackTrace();
         }
+    }
+
+    private void sendError(final GuildMessageReceivedEvent event, final StringBuilder builder) {
+        final MessageEmbed embed = new EmbedBuilder()
+                .setTitle("Sortie erreur")
+                .setColor(Color.RED)
+                .setDescription("```" + builder + "```")
+                .setTimestamp(Instant.now())
+                .setFooter(event.getMember().getEffectiveName(), event.getAuthor().getAvatarUrl())
+                .build();
+        event.getChannel().sendMessageEmbeds(embed).queue();
     }
 
 }
