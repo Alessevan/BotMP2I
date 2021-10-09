@@ -122,7 +122,7 @@ public class ExecuteCommand implements CommandExecutor {
             try {
                 StringBuilder builder = new StringBuilder();
                 while ((line = reader.readLine()) != null) {
-                    builder.append(line.replaceAll("tempo/tempo(python|c|ocaml)?_[0-9]{18}_[0-9]{13}.(py|c|ml):", "")).append(System.lineSeparator());
+                    builder.append(line.replaceAll("tempo/tempo(python|c|ocaml)?_[0-9]{18}_[0-9]{13}.(py|c|ml):?", "")).append(System.lineSeparator());
                     Starter.getLogger().log(Level.INFO, line);
                     if (builder.length() > 1900) {
                         if (error)
