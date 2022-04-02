@@ -5,7 +5,6 @@ import fr.bakaaless.mp2i.starter.Starter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
@@ -13,6 +12,7 @@ import org.apache.log4j.Level;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -77,10 +77,16 @@ public class ExecuteCommand implements CommandExecutor {
                 final String fileName = "tempoocaml_" + message.getAuthor().getId() + "_" + System.currentTimeMillis();
                 final File executeCode = new File("tempo", fileName + ".ml");
                 try {
+                    File script = new File("scripts/ocaml.sh");
+                    if (!script.exists()) {
+                        script.getParentFile().mkdirs();
+                        InputStream link = getClass().getResourceAsStream("/scripts/ocaml.sh");
+                        Files.copy(link, script.getAbsoluteFile().toPath());
+                    }
                     executeCode.getParentFile().mkdirs();
                     executeCode.createNewFile();
                     FileUtils.writeByteArrayToFile(executeCode, message.getContentStripped().getBytes(StandardCharsets.UTF_8));
-                    final Process ocamlProcess = Runtime.getRuntime().exec("ocaml " + executeCode.getPath() + args);
+                    final Process ocamlProcess = Runtime.getRuntime().exec("sh " + script.getPath() + " " + executeCode.getPath() + args);
                     printErrorCommand(event, ocamlProcess);
                     printResultCommand(event, ocamlProcess);
                     new Thread(() -> {
