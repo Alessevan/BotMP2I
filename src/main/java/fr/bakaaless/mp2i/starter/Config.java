@@ -19,7 +19,6 @@ public class Config {
     }
 
     private String version = "1.0.0";
-    private String token = "";
     private String prefix = "&";
 
     private Config() {
@@ -27,10 +26,6 @@ public class Config {
 
     public String getVersion() {
         return this.version;
-    }
-
-    public String getToken() {
-        return this.token;
     }
 
     public String getPrefix() {

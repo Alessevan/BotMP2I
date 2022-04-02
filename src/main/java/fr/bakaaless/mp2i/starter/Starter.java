@@ -74,7 +74,7 @@ public class Starter {
                 System.exit(2);
             }
         }
-        bot = Bot.generate(Config.get().getToken());
+        bot = Bot.generate(args[0]);
         logger.log(Level.INFO, "Setup misc' commands...");
         bot.setupMisc();
 
